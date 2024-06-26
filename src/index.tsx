@@ -1,12 +1,48 @@
 import { Hono } from 'hono'
 import { renderer } from './renderer'
+import { z } from 'zod'
+import { zValidator } from '@hono/zod-validator'
 
-const app = new Hono()
+const schema = z.object({
+  url: z.string().url(),
+})
+
+const validator = zValidator('form', schema)
+
+type Bindings = {
+  KV: KVNamespace
+}
+
+const app = new Hono<{
+  Bindings: Bindings
+}>()
 
 app.use(renderer)
 
 app.get('/', (c) => {
-  return c.render(<h1>Hello!</h1>)
+  return c.render(
+    <div>
+      <h2>Create shorten URL!</h2>
+      <form action="/create" method="post">
+        <input
+          type="text"
+          name="url"
+          autocomplete="off"
+          style={{
+            width: '80%',
+          }}
+        />
+        &nbsp;
+        <button type="submit">Create</button>
+      </form>
+    </div>
+  )
+})
+
+app.post('/create', validator, async (c) => {
+  const { url } = c.req.valid('form')
+  console.log(url)
+  return c.json({ message: 'URL created' })
 })
 
 export default app
