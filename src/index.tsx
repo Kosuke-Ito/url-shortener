@@ -38,10 +38,21 @@ const schema = z.object({
 })
 const validator = zValidator('form', schema)
 
+const createKey = async (kv: KVNamespace, url: string) => {
+  const uuid = crypto.randomUUID()
+  const key = uuid.substring(0, 6)
+  const result = await kv.get(key)
+  if (!result) {
+    await kv.put(key, url)
+  } else {
+    return await createKey(kv, url)
+  }
+  return key
+}
+
 app.post('/create', validator, async (c) => {
   const { url } = c.req.valid('form')
-  console.log(url)
-  return c.json({ message: 'URL created' })
+  const key = await createKey(c.env.KV, url)
 })
 
 export default app
