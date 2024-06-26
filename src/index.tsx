@@ -3,12 +3,6 @@ import { renderer } from './renderer'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
 
-const schema = z.object({
-  url: z.string().url(),
-})
-
-const validator = zValidator('form', schema)
-
 type Bindings = {
   KV: KVNamespace
 }
@@ -38,6 +32,11 @@ app.get('/', (c) => {
     </div>
   )
 })
+
+const schema = z.object({
+  url: z.string().url(),
+})
+const validator = zValidator('form', schema)
 
 app.post('/create', validator, async (c) => {
   const { url } = c.req.valid('form')
